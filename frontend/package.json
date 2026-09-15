@@ -1,0 +1,29 @@
+{
+  "name": "smartstorm-frontend",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.4",
+    "element-plus": "^2.8.0",
+    "konva": "^10.3.0",
+    "pinia": "^2.2.2",
+    "vue": "^3.5.4",
+    "vue-router": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@vitejs/plugin-vue": "^5.1.2",
+    "puppeteer-core": "^25.6.0",
+    "sass": "^1.77.8",
+    "typescript": "~5.5.4",
+    "vite": "^5.4.2",
+    "vue-tsc": "^2.0.29"
+  }
+}

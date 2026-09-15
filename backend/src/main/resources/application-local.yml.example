@@ -1,0 +1,28 @@
+# =====================================================================
+# 本地私有配置模板
+#
+# 使用方法：复制本文件为同目录下的 application-local.yml，填入自己的值。
+#   application-local.yml 已被 .gitignore 忽略，不会进入版本库。
+#
+# 也可以用环境变量覆盖（无需本文件）：
+#   DB_PASSWORD / MAIL_USERNAME / MAIL_PASSWORD / JWT_SECRET / DEEPSEEK_API_KEY
+# =====================================================================
+spring:
+  datasource:
+    # 本地 MySQL 密码
+    password: 你的MySQL密码
+
+  mail:
+    # QQ 邮箱账号 + SMTP 授权码
+    # 注意：授权码不是 QQ 登录密码，在「QQ邮箱 → 设置 → 账户 → 开启 SMTP 服务」后获取
+    username: 你的QQ邮箱@qq.com
+    password: 你的SMTP授权码
+
+app:
+  jwt:
+    # HS256 签名密钥（至少 32 字符）。更换后所有已签发的 token 立即失效。
+    secret: 请填一个至少32位的随机字符串
+
+  deepseek:
+    # DeepSeek 开放平台 API Key，申请地址 https://platform.deepseek.com
+    api-key: sk-你的DeepSeek密钥

@@ -1,0 +1,32 @@
+#!/bin/sh
+# ----------------------------------------------------------------------------
+# SmartStorm Maven Wrapper（独立下载版：无需预装 Maven）
+# 优先使用 JDK 17（Spring Boot 3 要求），找不到再回退 JAVA_HOME / PATH
+# ----------------------------------------------------------------------------
+set -e
+
+BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
+WRAPPER_JAR="$BASE_DIR/.mvn/wrapper/maven-wrapper.jar"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+  echo "wrapper jar not found, downloading maven-wrapper-3.3.2.jar ..."
+  WRAPPER_URL="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$WRAPPER_JAR" "$WRAPPER_URL"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$WRAPPER_JAR" "$WRAPPER_URL"
+  else
+    echo "curl or wget required to download wrapper jar"; exit 1
+  fi
+fi
+
+if [ -f "/c/Program Files/Java/jdk-17/bin/java.exe" ]; then
+  JAVA_EXE="/c/Program Files/Java/jdk-17/bin/java.exe"
+elif [ -n "$JAVA_HOME" ]; then
+  JAVA_EXE="$JAVA_HOME/bin/java"
+else
+  JAVA_EXE="java"
+fi
+
+exec "$JAVA_EXE" -Dmaven.multiModuleProjectDirectory="$BASE_DIR" \
+  -classpath "$WRAPPER_JAR" org.apache.maven.wrapper.MavenWrapperMain "$@"

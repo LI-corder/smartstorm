@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: smartstorm-backend
+
+  # ---------- 本地私有配置（含密钥，不入库） ----------
+  # 真实密钥写在 application-local.yml，该文件已被 .gitignore 忽略。
+  # 首次使用请复制 application-local.yml.example 为 application-local.yml 并填入自己的值。
+  # 也可以用环境变量覆盖：DB_PASSWORD / MAIL_USERNAME / MAIL_PASSWORD / JWT_SECRET / DEEPSEEK_API_KEY
+  config:
+    import: optional:classpath:application-local.yml
+
+  # ---------- 数据源 ----------
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/smartstorm?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    # password 见 application-local.yml（此处不声明，避免与本地配置冲突）
+
+  # ---------- SQL 初始化：每次启动自动建库建表（schema.sql，幂等） ----------
+  sql:
+    init:
+      mode: always          # 对 MySQL 也执行 schema.sql（默认 embedded 只对内嵌库生效）
+      encoding: UTF-8
+
+  # ---------- 邮件（QQ SMTP，用于注册验证码） ----------
+  mail:
+    host: smtp.qq.com
+    port: 587
+    # username / password 见 application-local.yml
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+
+  # ---------- 日志 ----------
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+server:
+  port: 8080
+
+# ---------- MyBatis-Plus ----------
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted   # 逻辑删除字段
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# ---------- 业务配置 ----------
+app:
+  jwt:
+    # secret 见 application-local.yml（生产环境请改用环境变量 JWT_SECRET）
+    expire-hours: 168   # token 有效期（7 天）
+
+  # ---------- DeepSeek（智能整理第三阶段） ----------
+  deepseek:
+    base-url: https://api.deepseek.com
+    # api-key 见 application-local.yml（或用环境变量 DEEPSEEK_API_KEY）
+    model: deepseek-v4-flash
+    timeout-seconds: 90   # 单次分析超时

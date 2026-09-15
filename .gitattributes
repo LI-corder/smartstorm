@@ -1,0 +1,29 @@
+# 仓库内统一按 LF 存储，检出时由 Git 按平台处理
+* text=auto
+
+# ===== 以下文件强制换行符，否则跨平台会报错 =====
+# Maven Wrapper 的 shell 脚本在 Windows 上若被检出为 CRLF，
+# 在 Linux/macOS 下运行会报 "bad interpreter: No such file or directory"
+mvnw        text eol=lf
+*.sh        text eol=lf
+
+# Windows 批处理必须 CRLF，LF 会导致命令解析异常
+mvnw.cmd    text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# ===== 二进制文件不做任何换行转换 =====
+*.jar   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+
+# ===== GitHub 语言统计 =====
+frontend/dist/*  linguist-generated
+*.vue            linguist-detectable

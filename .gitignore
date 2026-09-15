@@ -1,0 +1,31 @@
+# ===== 本地配置（含真实密钥，绝不入库）=====
+application-local.yml
+.env
+.env.local
+*.local.yml
+
+# ===== Node =====
+node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+
+# ===== Java / Maven =====
+backend/target/
+# 注意：.mvn/wrapper/maven-wrapper.jar 必须入库，否则别人克隆后 mvnw 无法运行
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# ===== 系统 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 日志 =====
+*.log
+logs/

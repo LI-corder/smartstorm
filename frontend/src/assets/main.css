@@ -1,0 +1,100 @@
+/* ============================================================
+   SmartStorm 全局设计规范
+   ============================================================ */
+
+:root {
+  /* 品牌色：蓝 → 紫 渐变 */
+  --sc-primary: #5b6cff;
+  --sc-primary-soft: #667eea;
+  --sc-accent: #8b5cf6;
+  --sc-grad-1: #667eea;
+  --sc-grad-2: #764ba2;
+
+  /* 文字 */
+  --sc-text: #1f2d3d;
+  --sc-text-secondary: #6b7a99;
+  --sc-text-muted: #9aa6bf;
+
+  /* 背景 & 边框 */
+  --sc-bg: #f7f9ff;
+  --sc-card-bg: #ffffff;
+  --sc-border: #e7ecf7;
+
+  /* 圆角 & 阴影 */
+  --sc-radius: 14px;
+  --sc-shadow: 0 12px 32px -14px rgba(91, 108, 255, 0.22);
+  --sc-shadow-lg: 0 24px 56px -20px rgba(91, 108, 255, 0.35);
+
+  /* 动效 */
+  --sc-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--sc-text);
+  background: var(--sc-bg);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* 渐变文字 */
+.grad-text {
+  background: linear-gradient(120deg, var(--sc-grad-1) 0%, var(--sc-grad-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* 品牌渐变按钮（覆盖 Element Plus 默认色） */
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus {
+  background: linear-gradient(120deg, var(--sc-grad-1) 0%, var(--sc-grad-2) 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px -8px rgba(102, 126, 234, 0.65) !important;
+  transition: transform 0.25s var(--sc-ease), box-shadow 0.25s var(--sc-ease), opacity 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -8px rgba(102, 126, 234, 0.75) !important;
+}
+
+.btn-ghost,
+.btn-ghost:hover,
+.btn-ghost:focus {
+  background: #fff !important;
+  border: 1px solid var(--sc-border) !important;
+  color: var(--sc-text) !important;
+  box-shadow: 0 4px 12px -4px rgba(31, 45, 61, 0.08) !important;
+}
+
+.btn-ghost:hover {
+  border-color: var(--sc-primary) !important;
+  color: var(--sc-primary) !important;
+}
