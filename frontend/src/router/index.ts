@@ -22,6 +22,12 @@ const router = createRouter({
       component: () => import('@/views/BoardView.vue')
     },
     {
+      // 第四阶段：区块信息（区块链浏览器，匿名可访问）
+      path: '/chain',
+      name: 'chain',
+      component: () => import('@/views/ChainView.vue')
+    },
+    {
       // 登录 / 注册
       path: '/login',
       name: 'login',

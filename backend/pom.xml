@@ -93,6 +93,18 @@
             <version>3.5.9</version>
         </dependency>
 
+        <!--
+            FISCO BCOS Java SDK：操作日志存证的锚定层（第四阶段）。
+            仅当 app.fisco.enabled=true 时才会装配使用，默认关闭 —— 见 FiscoConfig / NoopAnchorConfig。
+            注意：其底层是 JNI 封装的 C SDK，依赖平台相关的原生库，Windows 上能否加载未经验证；
+            因此核心业务代码只依赖 AnchorChainClient 接口，绝不出现本 SDK 的任何类型。
+        -->
+        <dependency>
+            <groupId>org.fisco-bcos.java-sdk</groupId>
+            <artifactId>fisco-bcos-java-sdk</artifactId>
+            <version>3.8.0</version>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -20,7 +20,8 @@ import java.util.List;
 /**
  * Spring Security 配置（游客只读，登录可写）：
  * <ul>
- *   <li>写入接口需登录：POST /api/rooms、POST/DELETE /api/notes/** 走 .authenticated()；</li>
+ *   <li>写入接口需登录：POST /api/rooms、POST/DELETE /api/notes/**、
+ *       POST /api/rooms/*&#47;analysis、POST /api/rooms/*&#47;chain/** 走 .authenticated()；</li>
  *   <li>其余（读接口、/ws、/api/auth/**）permitAll；</li>
  *   <li>JwtAuthFilter 解析 Bearer token 写入 SecurityContext；</li>
  *   <li>未认证访问受保护接口 → 自定义 401 JSON（与 Result 结构一致）。</li>
@@ -50,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/notes/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/notes/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/rooms/*/analysis").authenticated()
+                        // 存证：手动触发锚定需登录（读接口 /chain/status|verify|anchors|proof 匿名可访问）
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/rooms/*/chain/**").authenticated()
                         // 个人中心需登录
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/profile").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/profile").authenticated()

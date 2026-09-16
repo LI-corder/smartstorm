@@ -66,3 +66,20 @@ app:
     # api-key 见 application-local.yml（或用环境变量 DEEPSEEK_API_KEY）
     model: deepseek-v4-flash
     timeout-seconds: 90   # 单次分析超时
+
+  # ---------- FISCO BCOS 存证链（第四阶段） ----------
+  # 默认关闭。关闭时存证功能降级为「本地哈希链 + Merkle 根（标记待上链）」，不上链，
+  # 应用与画布功能完全不受影响；等链可用后，待上链的批次会被定时任务自动补发。
+  #
+  # 开启前务必确认 FISCO SDK 的原生库（JNI 封装的 C SDK）在运行平台上可用。
+  # 若 Windows 上加载失败，把后端整体放进虚拟机运行，前端仍可在宿主机。
+  fisco:
+    enabled: ${FISCO_ENABLED:false}
+    # SDK 配置文件路径（config.toml，内含节点地址与证书目录）
+    config-file: ${FISCO_CONFIG_FILE:conf/config.toml}
+    # 合约地址：在控制台 deploy SmartStormAnchor 后得到
+    contract-address: ${FISCO_CONTRACT_ADDRESS:}
+    # 群组名（Air 版单群组默认 group0）
+    group: group0
+    # 合约 ABI 在 classpath 中的位置（由控制台的 sol2java.sh 生成）
+    abi-location: abi/SmartStormAnchor.abi

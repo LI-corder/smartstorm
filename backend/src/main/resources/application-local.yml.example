@@ -6,6 +6,7 @@
 #
 # 也可以用环境变量覆盖（无需本文件）：
 #   DB_PASSWORD / MAIL_USERNAME / MAIL_PASSWORD / JWT_SECRET / DEEPSEEK_API_KEY
+#   FISCO_ENABLED / FISCO_CONFIG_FILE / FISCO_CONTRACT_ADDRESS
 # =====================================================================
 spring:
   datasource:
@@ -26,3 +27,15 @@ app:
   deepseek:
     # DeepSeek 开放平台 API Key，申请地址 https://platform.deepseek.com
     api-key: sk-你的DeepSeek密钥
+
+  # ---------- FISCO BCOS 存证链（第四阶段，默认关闭） ----------
+  # 关闭时存证降级为「本地哈希链 + Merkle 根（标记待上链）」，画布功能完全不受影响。
+  # 开启前请确认 FISCO SDK 的原生库（JNI 封装的 C SDK）在当前平台可用。
+  fisco:
+    enabled: false
+    # SDK 配置文件路径（config.toml），内含节点地址与证书目录
+    config-file: conf/config.toml
+    # 合约地址：控制台执行 deploy SmartStormAnchor 后得到
+    # 注意：ca.crt / sdk.crt / sdk.key 三个证书文件要与 config.toml 一起放到 conf/ 下，
+    #      它们已被根目录 .gitignore 忽略 —— sdk.key 是私钥，绝不入库。
+    contract-address: ""

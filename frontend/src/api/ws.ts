@@ -1,5 +1,5 @@
 import { useNotesStore } from '@/stores/notes'
-import type { AnalysisData, Note, OpMessage, WSInbound } from '@/types'
+import type { AnalysisData, AnchorRecord, Note, OpMessage, WSInbound } from '@/types'
 
 /**
  * 实时协同 WebSocket 客户端。
@@ -40,6 +40,8 @@ class WSClient {
   onError?: (msg: string) => void
   /** 收到 analysis（智能整理结果广播） */
   onAnalysis?: (data: AnalysisData) => void
+  /** 收到 chain_anchor（存证锚定上链完成广播） */
+  onAnchor?: (data: AnchorRecord) => void
   /** 收到 room_state（通知 UI 渲染快照） */
   onRoomState?: () => void
 
@@ -145,6 +147,9 @@ class WSClient {
         break
       case 'analysis':
         this.onAnalysis?.(msg.data as AnalysisData)
+        break
+      case 'chain_anchor':
+        this.onAnchor?.(msg.data as AnchorRecord)
         break
       case 'error':
         this.onError?.(msg.message || '未知错误')

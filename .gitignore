@@ -4,6 +4,15 @@ application-local.yml
 .env.local
 *.local.yml
 
+# ===== FISCO BCOS 证书（sdk.key 是私钥，绝不入库）=====
+# 证书由建链脚本生成在 nodes/<ip>/sdk/ 下，需拷到后端运行的 conf/ 目录
+*.crt
+*.key
+# 但允许示例证书目录结构说明文件入库
+!*.example.crt
+conf/
+nodes/
+
 # ===== Node =====
 node_modules/
 frontend/dist/

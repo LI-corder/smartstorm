@@ -36,6 +36,7 @@
           <template v-else>
             <el-button class="btn-ghost" round @click="$router.push('/login')">登录 / 注册</el-button>
           </template>
+          <el-button class="btn-ghost" round @click="$router.push('/chain')">区块信息</el-button>
           <el-button class="btn-ghost" round @click="openJoin">加入房间</el-button>
           <el-button class="btn-primary" round @click="createRoom">开始头脑风暴</el-button>
         </div>

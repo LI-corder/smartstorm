@@ -85,6 +85,12 @@
           </button>
         </el-tooltip>
 
+        <el-tooltip content="区块链存证（操作日志防篡改）" placement="right">
+          <button class="tool-btn" @click="chainStore.toggle()">
+            <el-icon size="20"><Link /></el-icon>
+          </button>
+        </el-tooltip>
+
         <div class="tool-divider"></div>
 
         <el-tooltip content="放大" placement="right">
@@ -136,6 +142,9 @@
             </div>
           </div>
         </transition>
+
+        <!-- 区块链存证面板：右侧滑出，与上面的智能整理浮层不重叠 -->
+        <ChainPanel ref="chainPanelRef" :room-id="roomId" :readonly="readonly" />
       </main>
     </div>
   </div>
@@ -146,10 +155,12 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import CanvasStage from '@/components/canvas/CanvasStage.vue'
+import ChainPanel from '@/components/chain/ChainPanel.vue'
 import { useNotesStore } from '@/stores/notes'
 import { useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
 import { useAnalysisStore } from '@/stores/analysis'
+import { useChainStore } from '@/stores/chain'
 import { wsClient } from '@/api/ws'
 import { getRoomById } from '@/api/room'
 import { analyzeRoom, getLatestAnalysis } from '@/api/analysis'
@@ -160,6 +171,7 @@ const notesStore = useNotesStore()
 const roomStore = useRoomStore()
 const authStore = useAuthStore()
 const analysisStore = useAnalysisStore()
+const chainStore = useChainStore()
 
 /** 是否正在请求智能整理 */
 const analyzing = ref(false)
@@ -168,6 +180,7 @@ const analyzing = ref(false)
 const readonly = computed(() => !authStore.isLoggedIn)
 
 const canvasRef = ref<InstanceType<typeof CanvasStage> | null>(null)
+const chainPanelRef = ref<InstanceType<typeof ChainPanel> | null>(null)
 
 const zoomPercent = computed(() => {
   const v = canvasRef.value?.view
@@ -286,12 +299,18 @@ onMounted(async () => {
   wsClient.onAnalysis = (d) => {
     analysisStore.setAnalysis(d)
   }
+  wsClient.onAnchor = (a) => {
+    chainStore.pushAnchor(a)
+    // 上链后"已存证至 seq"和批次计数都变了，顺手刷新摘要
+    chainPanelRef.value?.refresh()
+  }
   // 晚加入 / 刷新：恢复最近一次整理覆盖层
   loadLatestAnalysis()
 })
 
 onBeforeUnmount(() => {
   wsClient.onAnalysis = undefined
+  wsClient.onAnchor = undefined
   wsClient.disconnect()
 })
 

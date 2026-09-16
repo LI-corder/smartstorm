@@ -33,7 +33,7 @@ import java.util.Map;
  *   <li>出站：room_state（快照）/ user_list / op（操作广播+回执）/ cursor / error</li>
  * </ul>
  *
- * <p>一致性模型：服务器为每个操作分配房间内递增 seq 并落库，
+ * <p>一致性模型：服务器为每个操作分配房间内递增 seq 并落库（同时串上链式哈希），
  * 再将富化后的 op 广播给房间内所有人（含发件人，作为持久化回执）。
  * 所有人按 seq 顺序应用 → 状态一致。cursor 只转发不落库。</p>
  */
@@ -163,17 +163,17 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        // 1. 应用到 note 当前状态，得到富化后的 payload（含数据库生成的 id）
-        //    写入者身份用握手时 JWT 解析出的 userId，不信任客户端传值
+        // 1+2. 更新 note 当前状态 + 记录操作日志（含链式哈希），两步在同一把房间写锁内
+        //      完成。分开做会在并发下出现"便利贴状态改了但没记日志"，画布与哈希链分叉。
+        //      写入者身份用握手时 JWT 解析出的 userId，不信任客户端传值。
         Long writerId = (Long) session.getAttributes().get(WebSocketConfig.ATTR_USER_ID);
-        ObjectNode enriched = opService.applyOp(roomId, writerId, type, data);
-        if (enriched == null) {
+        OpService.OpResult result = opService.applyAndRecord(roomId, writerId, type, data);
+        if (result == null) {
             send(session, error("操作无效: " + type));
             return;
         }
-
-        // 2. 记录操作日志（分配递增 seq）
-        var op = opService.record(roomId, writerId, type, enriched.toString());
+        ObjectNode enriched = result.payload();
+        var op = result.op();
         log.info("op roomId={} seq={} type={} user={}", roomId, op.getSeq(), type, user.userName());
 
         // 3. 广播给房间内所有人（含发件人回执），带 seq 与用户信息

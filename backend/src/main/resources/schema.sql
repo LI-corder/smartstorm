@@ -1,6 +1,10 @@
 -- =====================================================================
 -- SmartStorm 数据库结构（幂等：每次启动执行，已存在则跳过）
--- 与实体类对应：Room / Note / Member / OpLog
+-- 与实体类对应：Room / Note / Member / OpLog / User / EmailCode
+--              / BoardAnalysis / ChainAnchor
+--
+-- 注意：本文件全部用 CREATE TABLE IF NOT EXISTS，表已存在时整段跳过，
+--       因此「给已有表加列」必须走文件末尾的 information_schema 判断 + 动态 SQL。
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS `room` (
@@ -87,4 +91,58 @@ CREATE TABLE IF NOT EXISTS `board_analysis` (
     PRIMARY KEY (`id`),
     KEY `idx_room_created` (`room_id`, `created_at`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT ='智能整理结果（供回放）';
+
+CREATE TABLE IF NOT EXISTS `chain_anchor` (
+    `id`           BIGINT      NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `room_id`      BIGINT      NOT NULL COMMENT '所属房间',
+    `from_seq`     BIGINT      NOT NULL COMMENT '本批起始 seq',
+    `to_seq`       BIGINT      NOT NULL COMMENT '本批结束 seq',
+    `merkle_root`  CHAR(66)    NOT NULL COMMENT '本批 Merkle 根（0x 前缀）',
+    `tx_hash`      VARCHAR(66) DEFAULT NULL COMMENT '链上交易哈希',
+    `block_number` BIGINT      DEFAULT NULL COMMENT '区块高度',
+    `status`       TINYINT     DEFAULT 0 COMMENT '状态：0待上链 1已上链 2失败',
+    `retry_count`  INT         DEFAULT 0 COMMENT '重试次数',
+    `created_at`   DATETIME    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `confirmed_at` DATETIME    DEFAULT NULL COMMENT '上链确认时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_room_range` (`room_id`, `from_seq`, `to_seq`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT ='链上存证锚点';
+
+-- =====================================================================
+-- 增量迁移（幂等）
+--
+-- 上面的 CREATE TABLE IF NOT EXISTS 在表已存在时会整段跳过，所以给已有表
+-- 加列不会生效；MySQL 8.0 又不支持 ALTER TABLE ... ADD COLUMN IF NOT EXISTS。
+-- 这里用 information_schema 判断 + 动态 SQL 实现幂等加列。
+-- =====================================================================
+
+-- op_log.prev_hash：前一条操作的哈希（房间内链式，首条为 64 个 0）
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'op_log' AND COLUMN_NAME = 'prev_hash');
+SET @s := IF(@c = 0,
+    'ALTER TABLE `op_log` ADD COLUMN `prev_hash` CHAR(64) DEFAULT NULL COMMENT ''前一条操作哈希（房间内链式）''',
+    'DO 0');
+PREPARE st FROM @s;
+EXECUTE st;
+DEALLOCATE PREPARE st;
+
+-- op_log.hash：本条操作的 SHA-256（hex，64 字符）
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'op_log' AND COLUMN_NAME = 'hash');
+SET @s := IF(@c = 0,
+    'ALTER TABLE `op_log` ADD COLUMN `hash` CHAR(64) DEFAULT NULL COMMENT ''本条操作哈希 SHA-256''',
+    'DO 0');
+PREPARE st FROM @s;
+EXECUTE st;
+DEALLOCATE PREPARE st;
+
+-- (room_id, hash) 索引：回填扫 hash IS NULL、锚定扫区间都要用
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'op_log' AND INDEX_NAME = 'idx_room_hash');
+SET @s := IF(@c = 0,
+    'ALTER TABLE `op_log` ADD INDEX `idx_room_hash` (`room_id`, `hash`)',
+    'DO 0');
+PREPARE st FROM @s;
+EXECUTE st;
+DEALLOCATE PREPARE st;
 
