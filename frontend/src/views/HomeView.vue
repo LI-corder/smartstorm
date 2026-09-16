@@ -49,14 +49,15 @@
       <div class="hero-glow glow-2"></div>
 
       <div class="hero-content">
-        <span class="hero-badge">🚀 实时协作 · 智能整理 · 结构化导出</span>
+        <span class="hero-badge">🚀 实时协作 · 智能整理 · 存证上链</span>
         <h1 class="hero-title">
           让每个灵感<br />
           <span class="grad-text">都有落脚点</span>
         </h1>
         <p class="hero-sub">
           SmartStorm 是一款多人实时协作的在线白板。它不仅同步你的每一笔，
-          更能理解画布上的内容 —— 自动整理、发现冲突、生成会议纪要。
+          更能理解画布上的内容 —— 自动整理、发现冲突，并把整个过程存证上链，
+          可验证、可追溯。
         </p>
 
         <div class="hero-actions">
@@ -78,6 +79,7 @@
           <span class="meta-item">✓ 无限画布</span>
           <span class="meta-item">✓ 智能分组</span>
           <span class="meta-item">✓ 冲突标记</span>
+          <span class="meta-item">✓ 存证上链</span>
         </div>
       </div>
 
@@ -109,7 +111,7 @@
     <section id="features" class="features">
       <div class="section-head">
         <h2 class="section-title">三大核心能力</h2>
-        <p class="section-desc">从灵感到结论，一站式完成头脑风暴的全流程</p>
+        <p class="section-desc">从散乱的想法，到可验证的结论</p>
       </div>
 
       <div class="feature-grid">
@@ -132,7 +134,7 @@
     <!-- ==================== 使用流程 ==================== -->
     <section id="workflow" class="workflow">
       <div class="section-head">
-        <h2 class="section-title">三步开始</h2>
+        <h2 class="section-title">四步开始</h2>
         <p class="section-desc">创建房间，邀请伙伴，剩下的交给 SmartStorm</p>
       </div>
 
@@ -205,11 +207,11 @@ const features = [
     tags: ['智能分组', '冲突标记', '手动调整']
   },
   {
-    icon: '📤',
+    icon: '🔗',
     color: 'green',
-    title: '结构化导出',
-    desc: '把整理好的思路一键导出为思维导图，或调用大模型生成通顺的会议纪要初稿。从想法到文档，无缝衔接。',
-    tags: ['思维导图', '会议纪要', '操作回放']
+    title: '操作日志存证',
+    desc: '每一次画布操作都写入哈希链，并按批次把 Merkle 根锚定到 FISCO BCOS 联盟链。会议过程有没有被改过，一验便知。',
+    tags: ['哈希链', 'Merkle 上链', '区块浏览器', '完整性校验']
   }
 ]
 
@@ -226,8 +228,13 @@ const steps = [
   },
   {
     icon: '🧩',
-    title: '智能整理导出',
-    desc: '一键智能分组、发现冲突，生成思维导图与会议纪要，结束这场高效头脑风暴。'
+    title: '智能整理',
+    desc: '一键把语义相近的想法归组，自动发现观点冲突，散乱的便利贴变成结构清晰的话题地图。'
+  },
+  {
+    icon: '🔗',
+    title: '存证与查验',
+    desc: '每一步操作都写入哈希链并锚定上链。一键验证整场会议未被篡改，也可在区块信息页查看链上记录。'
   }
 ]
 
@@ -655,8 +662,9 @@ async function joinRoom() {
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  /* 四步：创建房间 → 记录想法 → 智能整理 → 存证查验 */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
   position: relative;
 }
 
