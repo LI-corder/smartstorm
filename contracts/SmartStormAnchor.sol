@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.11;
+// FISCO BCOS 的 Solidity 支持范围是 0.4.25 ~ 0.8.11，这里放宽到整个 0.8.x，
+// 免得控制台内置的编译器版本与控制台文档不一致时卡在编译这一步
+pragma solidity >=0.8.0 <0.9.0;
 
 /**
  * @title SmartStormAnchor
