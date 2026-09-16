@@ -4,7 +4,7 @@
     <header class="nav">
       <div class="nav-inner">
         <div class="brand" @click="$router.push('/')">
-          <span class="brand-icon">🧠</span>
+          <img src="@/assets/logo.png" class="brand-icon" alt="SmartStorm" />
           <span class="brand-name">Smart<span class="grad-text">Storm</span></span>
         </div>
         <nav class="nav-links">
@@ -15,7 +15,13 @@
           <template v-if="authStore.isLoggedIn">
             <el-dropdown trigger="click" @command="onNavCommand">
               <span class="nav-user">
-                <el-avatar :size="30" class="nav-avatar" :style="{ background: avatarBg }">
+                <!-- 有自定义头像就显示图片，否则回退到颜色块 + 昵称首字 -->
+                <el-avatar
+                  :size="30"
+                  class="nav-avatar"
+                  :src="authStore.user?.avatarUrl || undefined"
+                  :style="authStore.user?.avatarUrl ? undefined : { background: avatarBg }"
+                >
                   {{ authStore.user?.nickname?.slice(0, 1) }}
                 </el-avatar>
                 <span class="nav-nickname">{{ authStore.user?.nickname }}</span>
@@ -121,7 +127,9 @@
           class="feature-card"
           :style="{ animationDelay: (i * 0.08) + 's' }"
         >
-          <div class="feature-icon" :class="f.color">{{ f.icon }}</div>
+          <div class="feature-icon" :class="f.color">
+            <el-icon><component :is="f.icon" /></el-icon>
+          </div>
           <h3 class="feature-title">{{ f.title }}</h3>
           <p class="feature-desc">{{ f.desc }}</p>
           <div class="feature-tags">
@@ -141,7 +149,9 @@
       <div class="steps">
         <div v-for="(s, i) in steps" :key="i" class="step">
           <div class="step-num">{{ i + 1 }}</div>
-          <div class="step-icon">{{ s.icon }}</div>
+          <div class="step-icon">
+            <el-icon><component :is="s.icon" /></el-icon>
+          </div>
           <h4>{{ s.title }}</h4>
           <p>{{ s.desc }}</p>
         </div>
@@ -193,21 +203,21 @@ const previewNotes = [
 
 const features = [
   {
-    icon: '🖥️',
+    icon: 'Monitor',
     color: 'blue',
     title: '实时协作画布',
     desc: '多人同屏协作，每一张便利贴的创建、编辑、拖拽都实时同步。多人光标让你看到伙伴的思路轨迹。',
     tags: ['多人房间', '实时同步', '多人光标', '无限画布']
   },
   {
-    icon: '🧠',
+    icon: 'Magnet',
     color: 'purple',
     title: '智能整理引擎',
     desc: '一键把语义相近的想法归组，自动发现观点冲突并连线标记。让散乱的脑暴碎片，变成结构清晰的地图。',
     tags: ['智能分组', '冲突标记', '手动调整']
   },
   {
-    icon: '🔗',
+    icon: 'Link',
     color: 'green',
     title: '操作日志存证',
     desc: '每一次画布操作都写入哈希链，并按批次把 Merkle 根锚定到 FISCO BCOS 联盟链。会议过程有没有被改过，一验便知。',
@@ -217,22 +227,22 @@ const features = [
 
 const steps = [
   {
-    icon: '🏠',
+    icon: 'HomeFilled',
     title: '创建 / 加入房间',
     desc: '创建房间获得专属房间号，把链接分享给伙伴，或输入房间号一键加入。'
   },
   {
-    icon: '✍️',
+    icon: 'EditPen',
     title: '自由记录想法',
     desc: '在无限画布上放置便利贴，记录每个人的灵感，实时同步每个人的操作。'
   },
   {
-    icon: '🧩',
+    icon: 'Magnet',
     title: '智能整理',
     desc: '一键把语义相近的想法归组，自动发现观点冲突，散乱的便利贴变成结构清晰的话题地图。'
   },
   {
-    icon: '🔗',
+    icon: 'Link',
     title: '存证与查验',
     desc: '每一步操作都写入哈希链并锚定上链。一键验证整场会议未被篡改，也可在区块信息页查看链上记录。'
   }
@@ -315,7 +325,10 @@ async function joinRoom() {
 }
 
 .brand-icon {
-  font-size: 22px;
+  height: 26px;
+  width: auto;      /* 图标不是正方形（256x222），按高度撑开保持比例 */
+  display: block;
+  flex: 0 0 auto;
 }
 
 .brand-name {
@@ -623,9 +636,10 @@ async function joinRoom() {
   margin-bottom: 18px;
 }
 
-.feature-icon.blue { background: #e8eeff; }
-.feature-icon.purple { background: #f0e9ff; }
-.feature-icon.green { background: #e3f8ee; }
+/* 底色 + 同色系图标；色值与 utils/avatar.ts 的品牌色板一致 */
+.feature-icon.blue { background: #e8eeff; color: #5b8cff; }
+.feature-icon.purple { background: #f0e9ff; color: #8b6cff; }
+.feature-icon.green { background: #e3f8ee; color: #2fc98a; }
 
 .feature-title {
   font-size: 19px;
@@ -699,8 +713,9 @@ async function joinRoom() {
 }
 
 .step-icon {
-  font-size: 36px;
+  font-size: 36px;              /* el-icon 按 1em 取尺寸，所以这一行同时决定图标大小 */
   margin-bottom: 14px;
+  color: var(--sc-primary);
 }
 
 .step h4 {

@@ -7,7 +7,7 @@
     <header class="nav">
       <div class="nav-inner">
         <div class="brand" @click="$router.push('/')">
-          <span class="brand-icon">🧠</span>
+          <img src="@/assets/logo.png" class="brand-icon" alt="SmartStorm" />
           <span class="brand-name">Smart<span class="grad-text">Storm</span></span>
         </div>
         <div class="nav-actions">
@@ -358,6 +358,13 @@ onMounted(async () => {
   font-size: 20px;
   font-weight: 700;
   color: var(--sc-text);
+}
+
+.brand-icon {
+  height: 26px;
+  width: auto;      /* 图标不是正方形（256x222），按高度撑开保持比例 */
+  display: block;
+  flex: 0 0 auto;
 }
 
 .nav-actions {

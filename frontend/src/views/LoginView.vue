@@ -6,7 +6,7 @@
 
     <div class="login-card">
       <div class="login-brand" @click="$router.push('/')">
-        <span class="brand-icon">🧠</span>
+        <img src="@/assets/logo.png" class="brand-icon" alt="SmartStorm" />
         <span class="brand-name">Smart<span class="grad-text">Storm</span></span>
       </div>
       <p class="login-sub">登录 / 注册 SmartStorm 账号</p>
@@ -266,7 +266,10 @@ onBeforeUnmount(() => {
 }
 
 .brand-icon {
-  font-size: 26px;
+  height: 30px;
+  width: auto;      /* 图标不是正方形（256x222），按高度撑开保持比例 */
+  display: block;
+  flex: 0 0 auto;
 }
 
 .brand-name {
