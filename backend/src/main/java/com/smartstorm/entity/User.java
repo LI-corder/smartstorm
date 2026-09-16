@@ -26,8 +26,11 @@ public class User {
     /** 昵称 */
     private String nickname;
 
-    /** 头像颜色标识 */
+    /** 头像颜色标识（未上传图片时的回退显示） */
     private String avatarColor;
+
+    /** 自定义头像 URL（如 /api/avatars/xxx.png）；为 null 表示未上传，回退到颜色块 */
+    private String avatarUrl;
 
     private LocalDateTime createdAt;
 }

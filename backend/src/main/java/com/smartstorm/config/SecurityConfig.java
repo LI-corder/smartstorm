@@ -57,6 +57,9 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/profile").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/profile").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/profile/change-password").authenticated()
+                        // 头像上传/移除需登录；读取图片的 GET /api/avatars/** 匿名放行（<img> 无法带 token）
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/profile/avatar").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/profile/avatar").authenticated()
                         // 其余（读接口 / 认证 / WebSocket）匿名可访问
                         .anyRequest().permitAll())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {

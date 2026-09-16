@@ -101,6 +101,8 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         String userId;
         String userName;
         String color;
+        // 头像统一用空串表示「没有」，不用 null —— 它后面要塞进 Map.of(...) 广播，那个不接受 null
+        String avatarUrl;
         if (loggedIn) {
             Long uid = (Long) userIdAttr;
             User user = authService.getById(uid);
@@ -111,10 +113,12 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
             userId = String.valueOf(user.getId());
             userName = user.getNickname();
             color = user.getAvatarColor();
+            avatarUrl = user.getAvatarUrl() == null ? "" : user.getAvatarUrl();
         } else {
             userId = data.path("userId").asText(session.getId());
             userName = data.path("userName").asText("访客");
             color = data.path("color").asText("blue");
+            avatarUrl = "";
         }
 
         if (roomId <= 0) {
@@ -128,7 +132,7 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         }
 
         // 登记会话 + 在 member 表登记（幂等），供快照关联操作者信息
-        sessionManager.join(roomId, session, userId, userName, color, loggedIn);
+        sessionManager.join(roomId, session, userId, userName, color, avatarUrl, loggedIn);
         roomService.joinRoom(roomId, parseUserId(userId), userName);
         log.info("用户加入房间 roomId={}, user={} ({}), loggedIn={}", roomId, userName, userId, loggedIn);
 
@@ -183,7 +187,8 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         out.set("user", objectMapper.valueToTree(Map.of(
                 "id", user.userId(),
                 "name", user.userName(),
-                "color", user.color())));
+                "color", user.color(),
+                "avatarUrl", user.avatarUrl())));
         ObjectNode dataNode = objectMapper.createObjectNode();
         dataNode.put("type", type);
         dataNode.set("payload", enriched);
@@ -203,7 +208,8 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         out.set("user", objectMapper.valueToTree(Map.of(
                 "id", user.userId(),
                 "name", user.userName(),
-                "color", user.color())));
+                "color", user.color(),
+                "avatarUrl", user.avatarUrl())));
         out.set("data", data);
         // 光标只转发给其他人，不落库
         sessionManager.broadcast(roomId, session.getId(), out.toString());

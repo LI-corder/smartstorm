@@ -23,8 +23,15 @@ public class RoomSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(RoomSessionManager.class);
 
-    /** 房间内在线用户信息（loggedIn 标记该会话是否已登录，游客只读） */
-    public record SessionUser(String userId, String userName, String color, boolean loggedIn) {
+    /**
+     * 房间内在线用户信息（loggedIn 标记该会话是否已登录，游客只读）。
+     *
+     * <p>{@code avatarUrl} 为自定义头像地址，未上传时是<b>空串而非 null</b> ——
+     * 它会被整体序列化进 {@code user_list} 广播，而下面的 op/cursor 消息还要把它塞进
+     * {@code Map.of(...)}，那个方法不接受 null 值。统一用空串省掉一处踩坑点。</p>
+     */
+    public record SessionUser(String userId, String userName, String color,
+                              String avatarUrl, boolean loggedIn) {
     }
 
     /** roomId -> sessionId -> session */
@@ -36,10 +43,12 @@ public class RoomSessionManager {
     /** sessionId -> 用户信息 */
     private final Map<String, SessionUser> sessionUser = new ConcurrentHashMap<>();
 
-    public void join(Long roomId, WebSocketSession session, String userId, String userName, String color, boolean loggedIn) {
+    public void join(Long roomId, WebSocketSession session, String userId, String userName,
+                     String color, String avatarUrl, boolean loggedIn) {
         rooms.computeIfAbsent(roomId, k -> new ConcurrentHashMap<>()).put(session.getId(), session);
         sessionRoom.put(session.getId(), roomId);
-        sessionUser.put(session.getId(), new SessionUser(userId, userName, color, loggedIn));
+        sessionUser.put(session.getId(),
+                new SessionUser(userId, userName, color, avatarUrl == null ? "" : avatarUrl, loggedIn));
     }
 
     public void leave(WebSocketSession session) {

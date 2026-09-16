@@ -31,6 +31,8 @@ public class ProfileVO {
         private String email;
         private String nickname;
         private String avatarColor;
+        /** 自定义头像 URL；为 null 表示未上传，前端回退到颜色块 */
+        private String avatarUrl;
         private String createdAt;
     }
 

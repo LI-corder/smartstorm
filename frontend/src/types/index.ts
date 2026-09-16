@@ -71,6 +71,8 @@ export interface User {
   email: string
   nickname: string
   avatarColor: string
+  /** 自定义头像 URL；为空表示未上传，前端回退到颜色块 */
+  avatarUrl?: string | null
 }
 
 /** 个人中心：用户信息（含注册时间） */
@@ -79,6 +81,8 @@ export interface ProfileUser {
   email: string
   nickname: string
   avatarColor: string
+  /** 自定义头像 URL；为空表示未上传，前端回退到颜色块 */
+  avatarUrl?: string | null
   createdAt: string
 }
 
@@ -109,11 +113,28 @@ export interface ProfileData {
   joinedRooms: RoomItem[]
 }
 
-/** 在线用户（WebSocket user_list / cursor 里的 user） */
+/**
+ * 在线用户（WebSocket user_list 里的 user）。
+ * 游客没有头像，所以 avatarUrl 为可选；服务端对「无头像」统一给空串而非 null。
+ */
 export interface OnlineUser {
   userId: string
   userName: string
   color: string
+  avatarUrl?: string | null
+}
+
+/**
+ * op / cursor 广播里的操作者信息。
+ *
+ * 注意键名与 OnlineUser **不同**：这一路是 `id` / `name`，user_list 那一路是
+ * `userId` / `userName`。两套是服务端分别构造的，加字段时别弄混。
+ */
+export interface BroadcastUser {
+  id: string
+  name: string
+  color: string
+  avatarUrl?: string | null
 }
 
 /** 统一响应 */
@@ -127,7 +148,8 @@ export interface Result<T = unknown> {
 export interface WSInbound {
   type: 'room_state' | 'user_list' | 'op' | 'cursor' | 'analysis' | 'chain_anchor' | 'error'
   seq?: number
-  user?: { id: string; name: string; color: string }
+  /** op / cursor 广播里的操作者信息（注意：这里的键名是 id/name，与 user_list 的 userId/userName 不同） */
+  user?: { id: string; name: string; color: string; avatarUrl?: string | null }
   data?: unknown
   message?: string
 }

@@ -146,3 +146,13 @@ PREPARE st FROM @s;
 EXECUTE st;
 DEALLOCATE PREPARE st;
 
+-- user.avatar_url：自定义头像 URL；为 NULL 表示未上传，前端回退到颜色块
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user' AND COLUMN_NAME = 'avatar_url');
+SET @s := IF(@c = 0,
+    'ALTER TABLE `user` ADD COLUMN `avatar_url` VARCHAR(255) DEFAULT NULL COMMENT ''自定义头像 URL；NULL 表示未上传''',
+    'DO 0');
+PREPARE st FROM @s;
+EXECUTE st;
+DEALLOCATE PREPARE st;
+

@@ -9,17 +9,18 @@ export const useRoomStore = defineStore('room', {
     roomId: 0,
     roomCode: '',
     roomName: '',
-    /** 当前用户（会话期固定） */
+    /** 当前用户（会话期固定）。avatarUrl 为空表示未上传头像，回退到颜色块 */
     currentUser: {
       userId: '',
       userName: '访客',
-      color: 'blue'
-    } as { userId: string; userName: string; color: string },
+      color: 'blue',
+      avatarUrl: ''
+    } as OnlineUser,
     onlineUsers: [] as OnlineUser[],
     connected: false
   }),
   actions: {
-    init(roomId: number, roomCode: string, roomName: string, user: { userId: string; userName: string; color: string }) {
+    init(roomId: number, roomCode: string, roomName: string, user: OnlineUser) {
       this.roomId = roomId
       this.roomCode = roomCode
       this.roomName = roomName

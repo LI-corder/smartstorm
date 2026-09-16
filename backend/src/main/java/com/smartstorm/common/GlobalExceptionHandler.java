@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * 全局异常处理：把未捕获的业务异常包装成统一结构返回。
@@ -24,6 +25,18 @@ public class GlobalExceptionHandler {
     public Result<Void> handleUnauthorized(UnauthorizedException e) {
         log.error("未授权访问", e);
         return Result.fail(401, e.getMessage());
+    }
+
+    /**
+     * 上传文件超过 multipart 配置的上限。
+     *
+     * <p>不单独处理的话会落到下面的 Exception 兜底，返回 500「服务器异常」——
+     * 明明是用户传了张太大的图，语义不对，用户也不知道该怎么办。</p>
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<Void> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("上传文件超过大小限制：{}", e.getMessage());
+        return Result.fail(400, "图片太大了，请选择 2MB 以内的图片");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

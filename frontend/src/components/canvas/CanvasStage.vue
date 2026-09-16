@@ -34,6 +34,7 @@ import Konva from 'konva'
 import { useNotesStore } from '@/stores/notes'
 import { useAnalysisStore } from '@/stores/analysis'
 import { wsClient } from '@/api/ws'
+import { avatarBg } from '@/utils/avatar'
 import type { Note } from '@/types'
 
 /** 只读模式：游客只能看，不能增删改（由 BoardView 传入） */
@@ -631,7 +632,9 @@ function showCursor(user: { id: string; name: string; color: string }, x: number
           ctx.closePath()
           ctx.fillStrokeShape(shape)
         },
-        fill: user.color,
+        // user.color 是 'blue' 这类标识符，不是色值。直接交给 Konva 会被当 CSS 具名颜色解析
+        // （blue 渲染成 #0000FF），与全局色板对不上，必须过一层 avatarBg 映射
+        fill: avatarBg(user.color),
         shadowColor: 'rgba(0,0,0,0.25)',
         shadowBlur: 4,
         shadowOffsetY: 2

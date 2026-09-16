@@ -8,7 +8,7 @@
     <header class="nav">
       <div class="nav-inner">
         <div class="brand" @click="$router.push('/')">
-          <span class="brand-icon">🧠</span>
+          <img src="@/assets/logo.png" class="brand-icon" alt="SmartStorm" />
           <span class="brand-name">Smart<span class="grad-text">Storm</span></span>
         </div>
         <div class="nav-actions">
@@ -23,7 +23,13 @@
         <!-- 左侧用户信息卡 -->
         <aside class="profile-side">
           <div class="user-card">
-            <el-avatar :size="76" :style="{ background: avatarBgOf(profile.user.avatarColor) }" class="user-avatar">
+            <!-- 有自定义头像就显示图片；没有则回退到「颜色块 + 昵称首字」 -->
+            <el-avatar
+              :size="76"
+              :src="profile.user.avatarUrl || undefined"
+              :style="profile.user.avatarUrl ? undefined : { background: avatarBgOf(profile.user.avatarColor) }"
+              class="user-avatar"
+            >
               {{ profile.user.nickname?.slice(0, 1) }}
             </el-avatar>
             <h2 class="user-nickname">{{ profile.user.nickname }}</h2>
@@ -76,6 +82,44 @@
                       @click="editForm.avatarColor = c"
                     />
                   </div>
+                </el-form-item>
+
+                <el-form-item label="自定义头像">
+                  <div class="avatar-row">
+                    <el-avatar
+                      :size="56"
+                      :src="editForm.avatarUrl || undefined"
+                      :style="editForm.avatarUrl ? undefined : { background: AVATAR_BG[editForm.avatarColor] }"
+                      class="avatar-preview"
+                    >
+                      {{ editForm.nickname?.slice(0, 1) || '?' }}
+                    </el-avatar>
+                    <div class="avatar-actions">
+                      <el-button
+                        class="btn-ghost"
+                        round
+                        size="small"
+                        :loading="uploadingAvatar"
+                        @click="fileInput?.click()"
+                      >
+                        选择图片
+                      </el-button>
+                      <el-button v-if="editForm.avatarUrl" text size="small" @click="onRemoveAvatar">
+                        移除
+                      </el-button>
+                    </div>
+                  </div>
+                  <p class="avatar-hint">
+                    支持 JPG / PNG / GIF / WebP，不超过 2MB。<b>选好即生效</b>，无需再点保存。
+                  </p>
+                  <!-- 用隐藏的原生 input 而不是 el-upload：后者内置的上传请求不走项目的 axios 实例，不会带 JWT -->
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    class="hidden-file"
+                    @change="onPickAvatar"
+                  />
                 </el-form-item>
 
                 <div class="form-actions">
@@ -211,7 +255,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Key, Lock } from '@element-plus/icons-vue'
 import type { ProfileData, RoomItem } from '@/types'
-import { getProfile, updateProfile, changePassword } from '@/api/profile'
+import { getProfile, updateProfile, changePassword, uploadAvatar, removeAvatar } from '@/api/profile'
 import { useAuthStore } from '@/stores/auth'
 import { AVATAR_COLORS, AVATAR_BG, avatarBg as avatarBgOf } from '@/utils/avatar'
 
@@ -223,8 +267,16 @@ const profile = ref<ProfileData | null>(null)
 const activeTab = ref('edit')
 
 // ---------- 资料编辑 ----------
-const editForm = reactive({ nickname: '', avatarColor: 'blue' })
+const editForm = reactive({ nickname: '', avatarColor: 'blue', avatarUrl: '' })
 const savingProfile = ref(false)
+
+// ---------- 自定义头像 ----------
+const uploadingAvatar = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+/** 与服务端魔数白名单保持一致。这里只是即时反馈，真正的把关在服务端 */
+const ACCEPTED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024
 
 // ---------- 修改密码 ----------
 const pwdFormRef = ref()
@@ -278,6 +330,7 @@ onMounted(async () => {
       profile.value = res.data.data
       editForm.nickname = res.data.data.user.nickname
       editForm.avatarColor = res.data.data.user.avatarColor
+      editForm.avatarUrl = res.data.data.user.avatarUrl || ''
     }
   } finally {
     loading.value = false
@@ -306,6 +359,69 @@ async function onSaveProfile() {
     ElMessage.error(e?.response?.data?.message || '保存失败')
   } finally {
     savingProfile.value = false
+  }
+}
+
+// ---------- 自定义头像 ----------
+
+/** 选中文件后立即上传（与昵称/颜色不同，头像不需要再点保存） */
+async function onPickAvatar(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  // 必须清空：否则连续选同一个文件不会再触发 change
+  input.value = ''
+  if (!file) return
+
+  if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
+    ElMessage.warning('只支持 JPG / PNG / GIF / WebP 格式的图片')
+    return
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    ElMessage.warning('图片不能超过 2MB')
+    return
+  }
+
+  uploadingAvatar.value = true
+  try {
+    const res = await uploadAvatar(file)
+    if (res.data.code === 0) {
+      applyAvatar(res.data.data.avatarUrl || '')
+      ElMessage.success('头像已更新')
+    } else {
+      ElMessage.warning(res.data.message || '上传失败')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '上传失败')
+  } finally {
+    uploadingAvatar.value = false
+  }
+}
+
+async function onRemoveAvatar() {
+  try {
+    const res = await removeAvatar()
+    if (res.data.code === 0) {
+      applyAvatar('')
+      ElMessage.success('已移除自定义头像')
+    } else {
+      ElMessage.warning(res.data.message || '移除失败')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '移除失败')
+  }
+}
+
+/**
+ * 把新头像同步到三处：编辑表单、左侧用户卡、全局登录态。
+ * 最后这处不能漏 —— 首页导航栏的头像读的是 authStore.user。
+ */
+function applyAvatar(url: string) {
+  editForm.avatarUrl = url
+  if (profile.value) {
+    profile.value.user = { ...profile.value.user, avatarUrl: url }
+  }
+  if (authStore.user) {
+    authStore.setUser({ ...authStore.user, avatarUrl: url })
   }
 }
 
@@ -393,7 +509,10 @@ async function onChangePassword() {
 }
 
 .brand-icon {
-  font-size: 22px;
+  height: 26px;
+  width: auto;      /* 图标不是正方形（256x222），按高度撑开保持比例 */
+  display: block;
+  flex: 0 0 auto;
 }
 
 .brand-name {
@@ -546,6 +665,43 @@ async function onChangePassword() {
 .color-dot.active {
   border-color: #fff;
   box-shadow: 0 0 0 3px var(--sc-primary);
+}
+
+/* ============ 自定义头像 ============ */
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+/* 与 .color-dot 同一套视觉语言：描边圆 + 主色光圈 */
+.avatar-preview {
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px var(--sc-border);
+  flex: 0 0 auto;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar-hint {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--sc-text-muted);
+}
+
+/* 原生 file input 只作为触发器，视觉上完全隐藏 */
+.hidden-file {
+  display: none;
 }
 
 /* ============ 我的房间 ============ */

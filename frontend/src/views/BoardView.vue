@@ -24,7 +24,13 @@
             :content="m.userName + (m.userId === roomStore.currentUser.userId ? '（我）' : '')"
             placement="bottom"
           >
-            <el-avatar :size="32" class="member-avatar" :style="{ background: memberColor(m.color) }">
+            <!-- 有自定义头像就显示图片，否则回退到颜色块 + 昵称首字 -->
+            <el-avatar
+              :size="32"
+              class="member-avatar"
+              :src="m.avatarUrl || undefined"
+              :style="m.avatarUrl ? undefined : { background: avatarBg(m.color) }"
+            >
               {{ m.userName.slice(0, 1) }}
             </el-avatar>
           </el-tooltip>
@@ -162,6 +168,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useAnalysisStore } from '@/stores/analysis'
 import { useChainStore } from '@/stores/chain'
 import { wsClient } from '@/api/ws'
+import { avatarBg } from '@/utils/avatar'
 import { getRoomById } from '@/api/room'
 import { analyzeRoom, getLatestAnalysis } from '@/api/analysis'
 
@@ -206,7 +213,8 @@ function getOrCreateUser() {
     return {
       userId: String(authStore.user.id),
       userName: authStore.user.nickname,
-      color: authStore.user.avatarColor
+      color: authStore.user.avatarColor,
+      avatarUrl: authStore.user.avatarUrl || ''
     }
   }
   // 未登录：匿名访客身份
@@ -234,10 +242,7 @@ const displayMembers = computed(() => {
   const users = roomStore.onlineUsers
   // 确保自己一定在列表
   if (!users.some((u) => u.userId === currentUser.value.userId)) {
-    return [
-      { userId: currentUser.value.userId, userName: currentUser.value.userName, color: currentUser.value.color },
-      ...users
-    ]
+    return [currentUser.value, ...users]
   }
   return users
 })
@@ -251,16 +256,6 @@ const colorOptions = [
 ]
 
 const selectedColor = ref('yellow')
-
-const MEMBER_COLORS: Record<string, string> = {
-  blue: '#5b8cff',
-  purple: '#8b6cff',
-  green: '#2fc98a',
-  orange: '#ff9f43'
-}
-function memberColor(c: string) {
-  return MEMBER_COLORS[c] || '#909399'
-}
 
 onMounted(async () => {
   // 0. 恢复登录态（刷新后仍用登录身份进房间）

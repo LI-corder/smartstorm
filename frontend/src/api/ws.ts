@@ -1,5 +1,13 @@
 import { useNotesStore } from '@/stores/notes'
-import type { AnalysisData, AnchorRecord, Note, OpMessage, WSInbound } from '@/types'
+import type {
+  AnalysisData,
+  AnchorRecord,
+  BroadcastUser,
+  Note,
+  OnlineUser,
+  OpMessage,
+  WSInbound
+} from '@/types'
 
 /**
  * 实时协同 WebSocket 客户端。
@@ -33,9 +41,9 @@ class WSClient {
   /** 连接状态回调 */
   onStatusChange?: (connected: boolean) => void
   /** 收到 user_list */
-  onUserList?: (users: { userId: string; userName: string; color: string }[]) => void
+  onUserList?: (users: OnlineUser[]) => void
   /** 收到 cursor */
-  onCursor?: (data: { user: { id: string; name: string; color: string }; data: { x: number; y: number } }) => void
+  onCursor?: (data: { user: BroadcastUser; data: { x: number; y: number } }) => void
   /** 收到 error */
   onError?: (msg: string) => void
   /** 收到 analysis（智能整理结果广播） */
@@ -118,7 +126,7 @@ class WSClient {
         break
       }
       case 'user_list': {
-        const data = msg.data as { users: { userId: string; userName: string; color: string }[] }
+        const data = msg.data as { users: OnlineUser[] }
         this.onUserList?.(data.users ?? [])
         break
       }
